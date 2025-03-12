@@ -1,69 +1,70 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { TextField, Button, Box, Grid2, Typography } from "@mui/material";
 
-function WorkoutSearch({ workouts }) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
+function WorkoutSearch({ workouts, onSearch }) {
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        setIsSearching(false);
-    };
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
-    const performSearch = () => {
-        setIsSearching(true);
-    };
-
-    const filterWorkouts = () => {
-        if (isSearching) {
-            const filteredWorkouts = workouts.filter(workout => 
-                workout.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                workout.exercises.some(exercise => 
-                    exercise.name.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
-
-            if (filteredWorkouts.length > 0) {
-                return filteredWorkouts.map((workout, index) => (
-                    <div key={index}>
-                        <p>Date: {workout.date}</p>
-                        <p>Category: {workout.category}</p>
-                        <p>Exercises:</p>
-                        {workout.exercises.map((exercise, exerciseIndex) => (
-                            <div key={exerciseIndex}>
-                                <p>{exercise.name}</p>
-                                <p>{exercise.details
-                                    .map(set => `${set.reps}x${set.weight}`)
-                                    .join(', ')}</p>
-                            </div>
-                        ))}<br />
-                    </div>
-                ));
-            } else {
-                return <p>No workouts found for "{searchTerm}"</p>;
-            }
-        }
-    };
-
-    return (
-        <div>
-            <form>
-                <label>Search
-                    <input 
-                        type="text" 
-                        value={searchTerm} 
-                        onChange={handleSearchChange} 
-                    />
-                </label>
-                <input 
-                    type="button" 
-                    value="Search" 
-                    onClick={performSearch} 
-                />
-            </form>
-
-            {filterWorkouts()}
-        </div>
+  const performSearch = () => {
+    const filteredWorkouts = workouts.filter((workout) =>
+      workout.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      workout.exercises.some((exercise) =>
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      [workout.cardio, workout.cardioType].some(field =>
+        field && field.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    onSearch(filteredWorkouts);
+  };
+
+  return (
+    <Box sx={{ maxWidth: 600, margin: "auto", mt: 4, padding: 3 }}>
+      <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+        SARCH WORKOUTS
+      </Typography>
+
+      <form onSubmit={(e) => e.preventDefault()}>
+        <Grid2 container spacing={2} alignItems="center" justifyContent="center">
+          <Grid2 item xs={8}>
+            <TextField
+              fullWidth
+              label="Search by Category or Exercise"
+              color="none"
+              variant="outlined"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "#555",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "secondary",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#555",
+                    textColor: "secondary",
+                  },
+                },
+              }}/>
+          </Grid2>
+
+          <Grid2 item xs={4}>
+            <Button
+              variant="contained"
+              color="secondary"
+              fullWidth
+              onClick={performSearch}>
+              Search
+            </Button>
+          </Grid2>
+        </Grid2>
+      </form>
+    </Box>
+  );
 }
 
 export default WorkoutSearch;

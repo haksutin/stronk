@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     TextField, Button, Box, Card, CardContent, Grid2, Typography, IconButton, RadioGroup, FormControlLabel,
     Radio, Slider, Snackbar, Alert
@@ -6,21 +6,38 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InputAdornment from '@mui/material/InputAdornment';
+import { useNavigate, useParams } from 'react-router';
 
-function AddWorkout({ addWorkout }) {
+function EditWorkout({ workouts, updateWorkout }) {
+    const { id } = useParams();
+    const navigate = useNavigate();
+
+    // alustus
     const [workout, setWorkout] = useState({
         id: "",
         date: "",
         category: "",
         exercises: [{ name: "", sets: 1, details: [{ weight: "", reps: "" }] }],
+        cardio: "no",
+        cardioType: "",
+        cardioDuration: 0
     });
 
-    // Updates workout fields
+    // hakee alkuperäisen harjoituksen tiedot
+    useEffect(() => {
+        const workoutToEdit = workouts.find(workout => workout.id === id);
+        if (workoutToEdit) {
+            setWorkout(workoutToEdit);
+        } else {
+            alert("Workout not found!");
+            navigate("/");
+        }
+    }, [id, workouts, navigate]);
+
     const handleWorkoutChange = (e) => {
         setWorkout({ ...workout, [e.target.name]: e.target.value });
     };
 
-    // Updates exercise fields
     const handleExerciseChange = (index, e) => {
         const updatedExercises = [...workout.exercises];
         updatedExercises[index] = {
@@ -31,7 +48,6 @@ function AddWorkout({ addWorkout }) {
         setWorkout({ ...workout, exercises: updatedExercises });
     };
 
-    // Updates set fields
     const handleSetChange = (exerciseIndex, setIndex, e) => {
         const updatedExercises = [...workout.exercises];
         updatedExercises[exerciseIndex].details[setIndex] = {
@@ -41,7 +57,6 @@ function AddWorkout({ addWorkout }) {
         setWorkout({ ...workout, exercises: updatedExercises });
     };
 
-    // Adds a new exercise to the workout
     const addExercise = () => {
         setWorkout({
             ...workout,
@@ -52,27 +67,24 @@ function AddWorkout({ addWorkout }) {
         });
     };
 
-    // Removes an exercise from the workout
     const removeExercise = (exerciseIndex) => {
         const updatedExercises = workout.exercises.filter((_, index) => index !== exerciseIndex);
         setWorkout({ ...workout, exercises: updatedExercises });
     };
 
-    // Saves the workout
     const saveWorkout = () => {
         if (!workout.date || !workout.category || workout.exercises.some((ex) => !ex.name || ex.details.some((set) => !set.weight || !set.reps))) {
             alert("All fields must be filled out.");
             return;
         }
 
-        addWorkout(workout);
-        setWorkout({ date: "", category: "", exercises: [{ name: "", sets: 1, details: [{ weight: "", reps: "" }] }] });
+        updateWorkout(workout);
+        navigate("/");
 
         setOpenSnackbar(true);
     };
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
-
 
     // sliderin merkit
     const marks = [
@@ -83,13 +95,13 @@ function AddWorkout({ addWorkout }) {
         { value: 40, label: '40' },
         { value: 50, label: '50' },
         { value: 60, label: '60' },
-    ]
+    ];
 
     return (
         <Card sx={{ maxWidth: 600, margin: "auto", mt: 4, p: 2, padding: 3, backgroundColor: "#333" }}>
             <CardContent>
                 <Typography variant="h4" sx={{ marginTop: 1 }} gutterBottom>
-                    ADD WORKOUT
+                    EDIT WORKOUT
                 </Typography>
 
                 <form>
@@ -212,8 +224,7 @@ function AddWorkout({ addWorkout }) {
                                 <DeleteIcon />
                             </IconButton>
                         </Box>
-                    ))
-                    }
+                    ))}
                     <Button
                         variant="contained"
                         color="primary"
@@ -266,9 +277,11 @@ function AddWorkout({ addWorkout }) {
                         </>
                     )}
 
+                    {/* Save Workout Button */}
                     <Button variant="contained" color="primary" onClick={saveWorkout} sx={{ width: "30%", display: "block", marginTop: 4, marginLeft: 0 }}>
                         Save Workout
                     </Button>
+
                     <Snackbar
                         open={openSnackbar}
                         autoHideDuration={3000}
@@ -287,10 +300,10 @@ function AddWorkout({ addWorkout }) {
                             Workout saved!
                         </Alert>
                     </Snackbar>
-                </form >
+                </form>
             </CardContent>
         </Card>
     );
 }
 
-export default AddWorkout;
+export default EditWorkout;
